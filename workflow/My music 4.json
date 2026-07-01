@@ -1,0 +1,318 @@
+{
+  "name": "My music 4",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "390b52e1-8c45-80bb-b664-d34c109156d1",
+          "mode": "list",
+          "cachedResultName": "390b52e1-8c45-80bb-b664-d34c109156d1",
+          "cachedResultUrl": "https://app.notion.com/p/390b52e18c4580bbb664d34c109156d1"
+        },
+        "title": "sentiment",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Mood|rich_text",
+              "textContent": "={{ $json.mood }}"
+            },
+            {
+              "key": "Sentiment Score|number",
+              "numberValue": "={{ $json.sentiment_score }}"
+            },
+            {
+              "key": "Themes|rich_text",
+              "textContent": "={{ $json.themes }}"
+            },
+            {
+              "key": "Summary|rich_text",
+              "textContent": "={{ $json.summary }}"
+            },
+            {
+              "key": "Artist|rich_text",
+              "textContent": "={{ $('url fethc').item.json.artistName }}"
+            },
+            {
+              "key": "Date Analyzed|date",
+              "date": "={{ $now }}",
+              "timezone": "Asia/Karachi"
+            },
+            {
+              "key": "Song|title",
+              "title": "={{ $('url fethc').item.json.songTitle }}"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        160
+      ],
+      "id": "20e70d5e-5625-47b3-a615-472924a9e0ca",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "6assGqeP2SYk1qal",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Add details",
+        "formDescription": "Check the notion! What a taste btw but not my type I am sure",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Song"
+            },
+            {
+              "fieldLabel": "Artist"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -96,
+        -128
+      ],
+      "id": "0eb6649a-b4da-447f-8fa1-02a87c27c04b",
+      "name": "On form submission",
+      "webhookId": "958b4999-c3fb-47f5-9061-b9099b160cd6"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.genius.com/search?q={{ $json.Artist }} {{ $json.Song }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        112,
+        -128
+      ],
+      "id": "3a36ddf4-c1ee-410e-86fc-c709bdfc500e",
+      "name": "genius api node",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fpNj1xIwCxmtd9yc",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f835805-129d-40f0-bd08-37ceae6a5a62",
+              "name": "lyricsUrl",
+              "value": "={{ $json.response.hits[0].result.url }}",
+              "type": "string"
+            },
+            {
+              "id": "fe9efa43-3ee6-4a38-8faf-366ec987ee4b",
+              "name": "songTitle",
+              "value": "={{ $json.response.hits[0].result.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a5ecda81-d8c2-4cc1-bc65-e20cfa571157",
+              "name": "artistName",
+              "value": "={{ $json.response.hits[0].result.primary_artist.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        112
+      ],
+      "id": "8ebd89e9-6753-42e1-a495-08ababd0d131",
+      "name": "url fethc"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.lyricsUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        288,
+        112
+      ],
+      "id": "c0925c4b-6b60-4fac-9e15-b7de2ddaab19",
+      "name": "lyrics from url"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.data;\n\nconst regex = /<div[^>]*data-lyrics-container=\"true\"[^>]*>(.*?)<\\/div>/gs;\nconst matches = [...html.matchAll(regex)];\n\nlet lyrics = matches.map(m => m[1]).join('\\n');\n\nlyrics = lyrics\n  .replace(/<br\\s*\\/?>/g, '\\n')\n  .replace(/<[^>]+>/g, '')\n  .replace(/&amp;/g, '&')\n  .replace(/&#x27;/g, \"'\")\n  .replace(/&quot;/g, '\"')\n  .trim();\nlyrics = lyrics.replace(/^[\\s\\S]*?(?=\\[(Chorus|Verse|Bridge|Intro|Outro|Pre-Chorus|Hook))/, '');\nreturn [{ json: { lyrics } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        112
+      ],
+      "id": "76289ccb-eec2-45d5-b9e3-6732c6378481",
+      "name": "chorus cleanup"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a music lyric analyst. Given song lyrics, analyze the mood and themes. Respond ONLY with valid JSON, no markdown, no other text, in this exact format:\n{\n  \"mood\": \"one or two words describing overall mood\",\n  \"sentiment_score\": a number between -1 and 1,\n  \"themes\": [\"theme1\", \"theme2\", \"theme3\"],\n  \"summary\": \"one sentence summary of what the song is about\"\n}\n\nHere are the lyrics:\n{{ $json.lyrics }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        576,
+        -112
+      ],
+      "id": "1f11d358-ff10-4cb6-b254-0b2e440d7b58",
+      "name": "get sentiments",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "odxVRNXcOYRRvF5r",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.candidates[0].content.parts[0].text;\nconst cleaned = raw.replace(/```json|```/g, '').trim();\nconst parsed = JSON.parse(cleaned);\n\nreturn [{\n  json: {\n    mood: parsed.mood,\n    sentiment_score: parsed.sentiment_score,\n    themes: parsed.themes.join(', '),\n    summary: parsed.summary\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        160
+      ],
+      "id": "6903cb21-0105-412a-b633-9bded2cd0e03",
+      "name": "cleaning json output"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "genius api node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "genius api node": {
+      "main": [
+        [
+          {
+            "node": "url fethc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "url fethc": {
+      "main": [
+        [
+          {
+            "node": "lyrics from url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lyrics from url": {
+      "main": [
+        [
+          {
+            "node": "chorus cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "chorus cleanup": {
+      "main": [
+        [
+          {
+            "node": "get sentiments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get sentiments": {
+      "main": [
+        [
+          {
+            "node": "cleaning json output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "cleaning json output": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b340ece4-c67e-4be7-8c80-0f79fd69db26",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "24f9413e076b0e023c79b570ea131414d0d957ad4dd1588a7406107c11eed269"
+  },
+  "id": "GJ8QDCZc1IXxAew0",
+  "tags": []
+}
