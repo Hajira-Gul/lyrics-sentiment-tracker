@@ -89,7 +89,7 @@
       ],
       "id": "0eb6649a-b4da-447f-8fa1-02a87c27c04b",
       "name": "On form submission",
-      "webhookId": "958b4999-c3fb-47f5-9061-b9099b160cd6"
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -311,7 +311,7 @@
   "versionId": "b340ece4-c67e-4be7-8c80-0f79fd69db26",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "24f9413e076b0e023c79b570ea131414d0d957ad4dd1588a7406107c11eed269"
+    "instanceId": " "
   },
   "id": "GJ8QDCZc1IXxAew0",
   "tags": []
